@@ -1,0 +1,141 @@
+<odoo>
+    <!-- Views -->
+    <record id="view_lunch_record_list" model="ir.ui.view">
+        <field name="name">lunch.record.list</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <list string="Lunch Records">
+                <field name="date" />
+                <field name="employee_id" optional="show" />
+                <field name="lunch_type" optional="hide" />
+                <field name="cost" optional="hide" sum="Total" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lunch_record_form" model="ir.ui.view">
+        <field name="name">lunch.record.form</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <form string="Lunch Record">
+                <sheet>
+                    <group>
+                        <field name="employee_id" readonly="1" />
+                        <field name="date" />
+                    </group>
+                    <group>
+                        <field name="lunch_type" />
+                        <field name="cost" />
+                    </group>
+                    <field name="note" />
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lunch_types_form" model="ir.ui.view">
+        <field name="name">lunch.types.form</field>
+        <field name="model">lunch.types</field>
+        <field name="arch" type="xml">
+            <form string="Lunch Types">
+                <sheet>
+                    <group>
+                        <field name="lunch_type" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_lunch_costs_form" model="ir.ui.view">
+        <field name="name">lunch.types.form</field>
+        <field name="model">lunch.types</field>
+        <field name="arch" type="xml">
+            <form string="Lunch Costs">
+                <sheet>
+                    <group>
+                        <field name="cost" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action: All Lunch Records (admin) -->
+    <record id="action_lunch_record_all" model="ir.actions.act_window">
+        <field name="name">All Lunch Records</field>
+        <field name="res_model">lunch.record</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Action: My Lunch Records (employee) -->
+    <record id="action_lunch_record_my" model="ir.actions.act_window">
+        <field name="name">My Lunch Records</field>
+        <field name="res_model">lunch.record</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <!-- <field name="view_id" ref="lunch_management.view_lunch_record_list" />
+        <field name="form_view_id" ref="lunch_management.view_lunch_record_form" /> -->
+    </record>
+
+    <!-- Action for configurations -->
+
+    <record id="action_lunch_record_types" model="ir.actions.act_window">
+        <field name="name">Lunch Types</field>
+        <field name="res_model">lunch.types</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_lunch_record_costs" model="ir.actions.act_window">
+        <field name="name">Lunch Costs</field>
+        <field name="res_model">lunch.types</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menus -->
+
+    <menuitem id="menu_lunch_root"
+        name="Lunch Management"
+        sequence="10" />
+
+
+    <menuitem id="menu_lunch_records_root"
+        name="Lunch Records"
+        parent="menu_lunch_root"
+        sequence="1" />
+
+
+    <menuitem id="menu_lunch_my"
+        name="My Lunch Records"
+        parent="menu_lunch_records_root"
+        action="action_lunch_record_my"
+        groups="base.group_user"
+        sequence="1" />
+
+    <menuitem id="menu_lunch_all"
+        name="All Lunch Records"
+        parent="menu_lunch_records_root"
+        action="action_lunch_record_all"
+        groups="base.group_system"
+        sequence="2" />
+
+    <menuitem id="menu_configuration_lunch_records"
+        name="Configuration"
+        parent="menu_lunch_root"
+        sequence="2" />
+
+    <menuitem id="menu_lunch_types"
+        name="Lunch Types"
+        parent="menu_configuration_lunch_records"
+        action="action_lunch_record_types"
+        groups="base.group_system"
+        sequence="1" />
+
+    <menuitem id="menu_lunch_costs"
+        name="Lunch Costs"
+        parent="menu_configuration_lunch_records"
+        action="action_lunch_record_types"
+        groups="base.group_system"
+        sequence="2" />
+
+</odoo>
