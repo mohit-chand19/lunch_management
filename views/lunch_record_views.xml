@@ -1,17 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Views -->
+
     <record id="view_lunch_record_list" model="ir.ui.view">
         <field name="name">lunch.record.list</field>
         <field name="model">lunch.record</field>
         <field name="arch" type="xml">
-            <list string="Lunch Records">
-                <field name="date" />
+            <list string="Lunch Records"
+                default_group_by="date"
+                create="true" edit="true" delete="true">
+                <field name="date" widget="date" />
                 <field name="employee_id" optional="show" />
                 <field name="lunch_type" optional="hide" />
-                <field name="cost" optional="hide" sum="Total" />
+                <field name="cost" optional="hide" sum="Total Cost" />
+                <field name="employee_id" invisible="1" />
             </list>
         </field>
     </record>
+
 
     <record id="view_lunch_record_form" model="ir.ui.view">
         <field name="name">lunch.record.form</field>
@@ -27,11 +32,56 @@
                         <field name="lunch_type" />
                         <field name="cost" />
                     </group>
-                    <field name="note" />
+                    <group>
+                        <field name="note" />
+                    </group>
                 </sheet>
             </form>
         </field>
     </record>
+
+
+    <record id="view_lunch_record_search" model="ir.ui.view">
+        <field name="name">lunch.record.search</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <search string="Lunch Records">
+                <field name="employee_id" string="Employee" />
+                <field name="date" string="Date" />
+
+
+                <filter string="Today" name="filter_today"
+                    domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]" />
+                <filter string="This Week" name="filter_this_week"
+                    domain="[('date', '>=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+                                 ('date', '&lt;=', (context_today() + datetime.timedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))]" />
+                <filter string="This Month" name="filter_this_month"
+                    domain="[('date', '>=', (context_today().replace(day=1)).strftime('%Y-%m-%d'))]" />
+
+                <separator />
+
+
+                <filter string="Group by Employee" name="group_employee"
+                    context="{'group_by': 'employee_id'}" />
+                <filter string="Group by Date" name="group_date"
+                    context="{'group_by': 'date'}" />
+            </search>
+        </field>
+    </record>
+
+
+    <record id="view_lunch_types_list" model="ir.ui.view">
+        <field name="name">lunch.types.list</field>
+        <field name="model">lunch.types</field>
+        <field name="arch" type="xml">
+            <list string="Lunch Types">
+                <field name="lunch_type" />
+                <field name="cost" />
+                <field name="note" />
+            </list>
+        </field>
+    </record>
+
 
     <record id="view_lunch_types_form" model="ir.ui.view">
         <field name="name">lunch.types.form</field>
@@ -41,101 +91,64 @@
                 <sheet>
                     <group>
                         <field name="lunch_type" />
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_lunch_costs_form" model="ir.ui.view">
-        <field name="name">lunch.types.form</field>
-        <field name="model">lunch.types</field>
-        <field name="arch" type="xml">
-            <form string="Lunch Costs">
-                <sheet>
-                    <group>
                         <field name="cost" />
+                        <field name="note" />
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
 
-    <!-- Action: All Lunch Records (admin) -->
+
     <record id="action_lunch_record_all" model="ir.actions.act_window">
         <field name="name">All Lunch Records</field>
         <field name="res_model">lunch.record</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_lunch_record_search" />
     </record>
 
-    <!-- Action: My Lunch Records (employee) -->
     <record id="action_lunch_record_my" model="ir.actions.act_window">
         <field name="name">My Lunch Records</field>
         <field name="res_model">lunch.record</field>
         <field name="view_mode">list,form</field>
-        <field name="context">{}</field>
-        <!-- <field name="view_id" ref="lunch_management.view_lunch_record_list" />
-        <field name="form_view_id" ref="lunch_management.view_lunch_record_form" /> -->
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+        <field name="search_view_id" ref="view_lunch_record_search" />
     </record>
 
-    <!-- Action for configurations -->
-
-    <record id="action_lunch_record_types" model="ir.actions.act_window">
+    <record id="action_lunch_types" model="ir.actions.act_window">
         <field name="name">Lunch Types</field>
         <field name="res_model">lunch.types</field>
         <field name="view_mode">list,form</field>
     </record>
 
-    <record id="action_lunch_record_costs" model="ir.actions.act_window">
-        <field name="name">Lunch Costs</field>
-        <field name="res_model">lunch.types</field>
-        <field name="view_mode">list,form</field>
-    </record>
-
-    <!-- Menus -->
-
+    <!-- Menus  -->
     <menuitem id="menu_lunch_root"
         name="Lunch Management"
         sequence="10" />
-
-
     <menuitem id="menu_lunch_records_root"
         name="Lunch Records"
         parent="menu_lunch_root"
         sequence="1" />
-
-
     <menuitem id="menu_lunch_my"
         name="My Lunch Records"
         parent="menu_lunch_records_root"
         action="action_lunch_record_my"
         groups="base.group_user"
         sequence="1" />
-
     <menuitem id="menu_lunch_all"
         name="All Lunch Records"
         parent="menu_lunch_records_root"
         action="action_lunch_record_all"
         groups="base.group_system"
         sequence="2" />
-
     <menuitem id="menu_configuration_lunch_records"
         name="Configuration"
         parent="menu_lunch_root"
         sequence="2" />
-
     <menuitem id="menu_lunch_types"
         name="Lunch Types"
         parent="menu_configuration_lunch_records"
-        action="action_lunch_record_types"
+        action="action_lunch_types"
         groups="base.group_system"
         sequence="1" />
-
-    <menuitem id="menu_lunch_costs"
-        name="Lunch Costs"
-        parent="menu_configuration_lunch_records"
-        action="action_lunch_record_types"
-        groups="base.group_system"
-        sequence="2" />
-
 </odoo>
