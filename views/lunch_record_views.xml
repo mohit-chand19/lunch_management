@@ -161,7 +161,7 @@
 
     <!-- MENU -->
     <menuitem id="menu_lunch_root" name="Lunch Management" sequence="10"
-        web_icon="19_lunch_management, static/description/icon.png" />
+        web_icon="19_lunch_management,static/description/icon.png" />
     <menuitem id="menu_lunch_records_root" name="Lunch Records" parent="menu_lunch_root"
         sequence="1" />
     <menuitem id="menu_lunch_my" name="My Lunch Records" parent="menu_lunch_records_root"

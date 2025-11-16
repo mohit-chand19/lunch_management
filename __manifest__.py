@@ -7,7 +7,7 @@
     'category': 'Human Resources',
     'author': 'Mohit Chand',
 
-    'images': ['19_lunch_management/static/description/icon.png'],
+    'images': ['static/description/icon.png'],
     'depends': ['base','hr'],
     'data': [
         
