@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Lunch Report Template -->
+        <template id="report_lunch_document" name="Lunch Report Document">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- Get context data -->
+                        <t t-set="data" t-value="env.context.get('report_data', {})" />
+                        <t t-set="company" t-value="data.get('company', {})" />
+
+                        <!-- Safely get employee name for header -->
+                        <t t-set="employee_name" t-value="''" />
+                        <t t-if="data.get('employee_id')">
+                            <t t-set="emp_name_list"
+                                t-value="env['hr.employee'].search_read([('id', '=', data['employee_id'])], ['name'])" />
+                            <t t-set="employee_name"
+                                t-value="emp_name_list[0]['name'] if emp_name_list else 'Unknown'" />
+                        </t>
+
+                        <!-- Report Title: All / Specific / My -->
+                        <h2 class="text-center">
+                            <span t-if="data.get('is_admin') and not data.get('employee_id')">
+                                All Lunch Report
+                            </span>
+                            <span t-elif="data.get('is_admin') and data.get('employee_id')"> Lunch
+                                Report - <span t-esc="employee_name" />
+                            </span>
+                            <span t-else="">My Lunch Report</span>
+                        </h2>
+
+                        <!-- Date Range (Fixed "to") -->
+                        <h4 class="text-center">
+                            <span t-esc="data.get('date_from') or ''" />
+                            <t t-if="data.get('date_from') and data.get('date_to')"> to </t>
+                            <span t-esc="data.get('date_to') or ''" />
+                        </h4>
+
+                        <!-- Lunch Records Table -->
+                        <table class="table table-bordered table-sm mt-4">
+                            <thead style="background-color: #f8f9fa;">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Day</th>
+                                    <th>Employee</th>
+                                    <th>Lunch Type</th>
+                                    <th class="text-right">Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Initialize total -->
+                                <t t-set="total_cost" t-value="0.0" />
+
+                                <!-- Loop through records -->
+                                <t t-foreach="docs" t-as="record">
+                                    <tr>
+                                        <td>
+                                            <span t-esc="record.date" />
+                                        </td>
+                                        <td>
+                                            <span t-esc="record.day" />
+                                        </td>
+
+                                        <!-- Employee Name (Safe) -->
+                                        <td>
+                                            <t t-set="row_emp_name" t-value="''" />
+                                            <t t-if="record.employee_id">
+                                                <t t-set="emp_list"
+                                                    t-value="env['hr.employee'].search_read([('id', '=', record.employee_id.id)], ['name'])" />
+                                                <t t-set="row_emp_name"
+                                                    t-value="emp_list[0]['name'] if emp_list else 'Unknown'" />
+                                            </t>
+                                            <span t-esc="row_emp_name" />
+                                        </td>
+
+                                        <td>
+                                            <span t-esc="record.lunch_type.lunch_type" />
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="record.cost"
+                                                t-options='{"widget": "monetary", "display_currency": env.ref("base.NPR")}' />
+                                        </td>
+                                    </tr>
+                                    <t t-set="total_cost"
+                                        t-value="total_cost + (record.cost or 0.0)" />
+                                </t>
+
+                                <!-- Total Row -->
+                                <tr class="font-weight-bold">
+                                    <td colspan="4" class="text-right">Total Cost:</td>
+                                    <td class="text-right">
+                                        <span t-esc="total_cost"
+                                            t-options='{"widget": "monetary", "display_currency": env.ref("base.NPR")}' />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Summary -->
+                        <div class="mt-5">
+                            <p>
+                                <strong>Total Days:</strong>
+                                <span t-esc="len(docs)" />
+                            </p>
+                            <p t-if="data.get('is_admin') and not data.get('employee_id')">
+                                <strong>Generated by:</strong> Administrator </p>
+                            <p t-elif="data.get('is_admin') and data.get('employee_id')">
+                                <strong>Generated for:</strong>
+                                <span t-esc="employee_name" />
+                            </p>
+                            <p t-else="">
+                                <strong>Employee:</strong>
+                                <span t-esc="employee_name" />
+                            </p>
+                        </div>
+
+                        <!-- Company Footer -->
+                        <div class="text-center mt-5" style="font-size: 10px; color: #666;">
+                            <t t-if="company.get('name')">
+                                <span t-esc="company['name']" />
+                                <br />
+                                <t t-if="company.get('street')">
+                                    <span t-esc="company['street']" />
+                                    <br />
+                                </t>
+                                <t t-if="company.get('phone')">Phone: <span t-esc="company['phone']" /><br /></t>
+                                <t t-if="company.get('email')">Email: <span t-esc="company['email']" /></t>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+
+        <!-- Report Action -->
+        <record id="action_report_lunch" model="ir.actions.report">
+            <field name="name">Lunch Report</field>
+            <field name="model">lunch.record</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">19_lunch_management.report_lunch_document</field>
+            <field name="report_file">19_lunch_management.report_lunch_document</field>
+            <field name="binding_model_id" ref="model_lunch_record" />
+            <field name="binding_type">report</field>
+        </record>
+
+    </data>
+</odoo>

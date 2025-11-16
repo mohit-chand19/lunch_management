@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <!-- Wizard Form -->
+        <record id="view_lunch_report_wizard" model="ir.ui.view">
+            <field name="name">lunch.report.wizard.form</field>
+            <field name="model">lunch.report.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Generate Lunch Report">
+                    <group>
+                        <field name="date_from" />
+                        <field name="date_to" />
+                        <field name="employee_id" groups="!base.group_system" />
+                    </group>
+                    <footer>
+                        <button string="Print Report" type="object" name="action_print_report"
+                            class="btn-primary" />
+                        <button string="Cancel" class="btn-secondary" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action to Open Wizard -->
+        <record id="action_lunch_report_wizard" model="ir.actions.act_window">
+            <field name="name">Lunch Report</field>
+            <field name="res_model">lunch.report.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <!-- Menus -->
+        <menuitem id="menu_lunch_report_employee"
+            name="My Lunch Report"
+            parent="menu_lunch_records_root"
+            action="action_lunch_report_wizard"
+            groups="base.group_user"
+            sequence="10" />
+
+        <menuitem id="menu_lunch_report_admin"
+            name="Lunch Reports"
+            parent="menu_configuration_lunch_records"
+            action="action_lunch_report_wizard"
+            groups="base.group_system"
+            sequence="10" />
+
+    </data>
+</odoo>

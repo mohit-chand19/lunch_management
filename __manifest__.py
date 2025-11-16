@@ -6,11 +6,15 @@
     'description': 'Record and manage daily lunch data for employees.',
     'category': 'Human Resources',
     'author': 'Mohit Chand',
+
+    'images': ['19_lunch_management/static/description/icon.png'],
     'depends': ['base','hr'],
     'data': [
         
         'security/ir.model.access.csv',
         'views/lunch_record_views.xml',
+        'views/lunch_report_views.xml',
+        'reports/lunch_report.xml',
     ],
     'installable': True,
     'application': True,

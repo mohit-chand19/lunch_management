@@ -1,46 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
+    <!-- LIST VIEW (Tree) -->
     <record id="view_lunch_record_list" model="ir.ui.view">
         <field name="name">lunch.record.list</field>
         <field name="model">lunch.record</field>
         <field name="arch" type="xml">
             <list string="Lunch Records"
-                default_group_by="date"
-                create="true" edit="true" delete="true">
+                create="true" edit="true" delete="false">
                 <field name="date" widget="date" />
+                <field name="day" string="Day" />
                 <field name="employee_id" optional="show" />
-                <field name="lunch_type" optional="hide" />
-                <field name="cost" optional="hide" sum="Total Cost" />
-                <field name="employee_id" invisible="1" />
+                <field name="lunch_type" optional="show" />
+                <field name="cost" optional="show" sum="Total Cost" />
+                <field name="state" widget="badge"
+                    decoration-success="state == 'confirmed'"
+                    decoration-danger="state == 'cancelled'"
+                    decoration-muted="state == 'draft'" />
             </list>
         </field>
     </record>
 
-
+    <!-- FORM VIEW WITH STATE (Odoo 19 Compatible - No t-if) -->
     <record id="view_lunch_record_form" model="ir.ui.view">
         <field name="name">lunch.record.form</field>
         <field name="model">lunch.record</field>
         <field name="arch" type="xml">
             <form string="Lunch Record">
+                <header>
+                    <!-- Confirm Button: Hidden outside 5 PM - 9 AM -->
+                    <button name="action_confirm" type="object" string="Confirm"
+                        class="btn-primary"
+                        invisible="state != 'draft' or not is_confirm_allowed" />
+
+                    <!-- Cancel Button -->
+                    <button name="action_cancel" type="object" string="Cancel"
+                        class="btn-secondary"
+                        invisible="state not in ('draft', 'confirmed')" />
+
+                    <!-- Reset to Draft (Admin Only) -->
+                    <button name="action_reset_draft" type="object" string="Reset to Draft"
+                        class="btn-warning"
+                        invisible="state not in ('cancelled', 'confirmed')"
+                        groups="base.group_system" />
+
+                    <field name="state" widget="statusbar"
+                        statusbar_visible="draft,confirmed"
+                        readonly="1" />
+                </header>
                 <sheet>
                     <group>
                         <field name="employee_id" readonly="1" />
-                        <field name="date" />
+                        <field name="date" readonly="state != 'draft'" />
+                        <field name="day" readonly="1" placeholder="Auto-filled" />
                     </group>
                     <group>
-                        <field name="lunch_type" />
-                        <field name="cost" />
+                        <field name="lunch_type" readonly="state != 'draft'" />
+                        <field name="cost" readonly="1" />
                     </group>
                     <group>
-                        <field name="note" />
+                        <field name="note" readonly="state != 'draft'" />
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
 
-
+    <!-- SEARCH VIEW -->
     <record id="view_lunch_record_search" model="ir.ui.view">
         <field name="name">lunch.record.search</field>
         <field name="model">lunch.record</field>
@@ -48,8 +74,7 @@
             <search string="Lunch Records">
                 <field name="employee_id" string="Employee" />
                 <field name="date" string="Date" />
-
-
+                <field name="state" />
                 <filter string="Today" name="filter_today"
                     domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]" />
                 <filter string="This Week" name="filter_this_week"
@@ -57,19 +82,22 @@
                                  ('date', '&lt;=', (context_today() + datetime.timedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))]" />
                 <filter string="This Month" name="filter_this_month"
                     domain="[('date', '>=', (context_today().replace(day=1)).strftime('%Y-%m-%d'))]" />
-
                 <separator />
-
-
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]" />
+                <filter string="Confirmed" name="filter_confirmed"
+                    domain="[('state', '=', 'confirmed')]" />
+                <filter string="Cancelled" name="filter_cancelled"
+                    domain="[('state', '=', 'cancelled')]" />
+                <separator />
                 <filter string="Group by Employee" name="group_employee"
                     context="{'group_by': 'employee_id'}" />
-                <filter string="Group by Date" name="group_date"
-                    context="{'group_by': 'date'}" />
+                <filter string="Group by Date" name="group_date" context="{'group_by': 'date'}" />
+                <filter string="Group by Status" name="group_state" context="{'group_by': 'state'}" />
             </search>
         </field>
     </record>
 
-
+    <!-- LUNCH TYPES VIEWS -->
     <record id="view_lunch_types_list" model="ir.ui.view">
         <field name="name">lunch.types.list</field>
         <field name="model">lunch.types</field>
@@ -81,7 +109,6 @@
             </list>
         </field>
     </record>
-
 
     <record id="view_lunch_types_form" model="ir.ui.view">
         <field name="name">lunch.types.form</field>
@@ -99,12 +126,13 @@
         </field>
     </record>
 
-
+    <!-- ACTIONS -->
     <record id="action_lunch_record_all" model="ir.actions.act_window">
         <field name="name">All Lunch Records</field>
         <field name="res_model">lunch.record</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_lunch_record_search" />
+        <field name="context">{}</field>
     </record>
 
     <record id="action_lunch_record_my" model="ir.actions.act_window">
@@ -121,34 +149,28 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- Menus  -->
-    <menuitem id="menu_lunch_root"
-        name="Lunch Management"
-        sequence="10" />
-    <menuitem id="menu_lunch_records_root"
-        name="Lunch Records"
-        parent="menu_lunch_root"
+    <!-- SERVER ACTION -->
+    <record id="action_server_open_lunch_records_all" model="ir.actions.server">
+        <field name="name">Open All Lunch Records</field>
+        <field name="model_id" ref="model_lunch_record" />
+        <field name="state">code</field>
+        <field name="code">
+            action = env['lunch.record'].action_open_lunch_records_all()
+        </field>
+    </record>
+
+    <!-- MENU -->
+    <menuitem id="menu_lunch_root" name="Lunch Management" sequence="10"
+        web_icon="19_lunch_management, static/description/icon.png" />
+    <menuitem id="menu_lunch_records_root" name="Lunch Records" parent="menu_lunch_root"
         sequence="1" />
-    <menuitem id="menu_lunch_my"
-        name="My Lunch Records"
-        parent="menu_lunch_records_root"
-        action="action_lunch_record_my"
-        groups="base.group_user"
-        sequence="1" />
-    <menuitem id="menu_lunch_all"
-        name="All Lunch Records"
-        parent="menu_lunch_records_root"
-        action="action_lunch_record_all"
-        groups="base.group_system"
+    <menuitem id="menu_lunch_my" name="My Lunch Records" parent="menu_lunch_records_root"
+        action="action_lunch_record_my" groups="base.group_user" sequence="1" />
+    <menuitem id="menu_lunch_all" name="All Lunch Records" parent="menu_lunch_records_root"
+        action="action_server_open_lunch_records_all" groups="base.group_system" sequence="2" />
+    <menuitem id="menu_configuration_lunch_records" name="Configuration" parent="menu_lunch_root"
         sequence="2" />
-    <menuitem id="menu_configuration_lunch_records"
-        name="Configuration"
-        parent="menu_lunch_root"
-        sequence="2" />
-    <menuitem id="menu_lunch_types"
-        name="Lunch Types"
-        parent="menu_configuration_lunch_records"
-        action="action_lunch_types"
-        groups="base.group_system"
-        sequence="1" />
+    <menuitem id="menu_lunch_types" name="Lunch Types" parent="menu_configuration_lunch_records"
+        action="action_lunch_types" groups="base.group_system" sequence="1" />
+
 </odoo>
