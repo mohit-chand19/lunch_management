@@ -14,6 +14,13 @@ class LunchRecord(models.Model):
         ('confirmed', 'Confirmed'),
         ('cancelled', 'Cancelled'),
     ], string='Status', default='draft', readonly=True, copy=False)
+    
+    name = fields.Char(
+        string='Reference',
+        compute='_compute_name',
+        store=True,
+        readonly=True
+    )
 
     # Confirm Button Visibility (Client-side)
     is_confirm_allowed = fields.Boolean(
@@ -21,6 +28,7 @@ class LunchRecord(models.Model):
         compute='_compute_confirm_allowed',
         store=False
     )
+
 
     employee_id = fields.Many2one(
         'hr.employee', string='Employee',
@@ -186,3 +194,18 @@ class LunchRecord(models.Model):
             context['search_default_filter_today'] = 1
         action['context'] = context
         return action
+    
+    @api.depends('employee_id', 'date')
+    def _compute_name(self):
+        for rec in self:
+            if rec.employee_id and rec.date:
+                rec.name = f"{rec.employee_id.name} - {rec.date.strftime('%Y-%m-%d')}"
+            else:
+                rec.name = "New"
+
+    def name_get(self):
+        result = []
+        for rec in self:
+            name = f"{rec.employee_id.name} - {rec.date.strftime('%Y-%m-%d')}"
+            result.append((rec.id, name))
+        return result

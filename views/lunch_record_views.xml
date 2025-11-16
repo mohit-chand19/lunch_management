@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
-    <!-- LIST VIEW (Tree) -->
+    <!-- LIST VIEW  -->
     <record id="view_lunch_record_list" model="ir.ui.view">
         <field name="name">lunch.record.list</field>
         <field name="model">lunch.record</field>
@@ -21,12 +21,13 @@
         </field>
     </record>
 
-    <!-- FORM VIEW WITH STATE (Odoo 19 Compatible - No t-if) -->
+    <!-- FORM VIEW WITH STATE  -->
     <record id="view_lunch_record_form" model="ir.ui.view">
         <field name="name">lunch.record.form</field>
         <field name="model">lunch.record</field>
         <field name="arch" type="xml">
             <form string="Lunch Record">
+                <field name="name" invisible="1" />
                 <header>
                     <!-- Confirm Button: Hidden outside 5 PM - 9 AM -->
                     <button name="action_confirm" type="object" string="Confirm"
