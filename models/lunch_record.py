@@ -53,6 +53,7 @@ class LunchRecord(models.Model):
         compute='_compute_day',
         store=True,
         readonly=True
+        
     )
 
     _sql_constraints = [
