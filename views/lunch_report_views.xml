@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- WIZARD FORM -->
+        <record id="view_lunch_report_wizard" model="ir.ui.view">
+            <field name="name">lunch.report.wizard.form</field>
+            <field name="model">lunch.report.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Generate Lunch Report">
+                    <sheet>
+                        <group>
+                            <group string="Date Range">
+                                <field name="date_from" required="1" />
+                                <field name="date_to" required="1" />
+                            </group>
+                            <group string="Report Type">
+                                <field name="report_type" widget="radio"
+                                    options="{'horizontal': True}" />
+                            </group>
+                        </group>
+
+                        <!-- Employee field – appears only when "Specific Employee" is chosen -->
+                        <group string="Employee" invisible="report_type != 'specific'">
+                            <field name="employee_id"
+                                required="report_type == 'specific'"
+                                placeholder="Select employee" />
+                        </group>
+
+                        <!-- Keep field alive when hidden -->
+                        <field name="employee_id" invisible="1" />
+                    </sheet>
+
+                    <footer>
+                        <button string="View Report" type="object" name="action_view_report"
+                            class="btn-success me-2" icon="fa-eye" />
+                        <button string="Print PDF" type="object" name="action_print_report"
+                            class="btn-primary" icon="fa-print" />
+                        <button string="Cancel" class="btn-secondary" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- ACTION – NO groups_id anymore in Odoo 19! -->
+        <record id="action_lunch_report_wizard" model="ir.actions.act_window">
+            <field name="name">Lunch Report</field>
+            <field name="res_model">lunch.report.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <!-- MENU – This is what restricts access to Admin only -->
+        <menuitem id="menu_lunch_report_root"
+            name="Reporting"
+            parent="menu_lunch_root"
+            groups="base.group_system"
+            sequence="2" />
+
+        <menuitem id="menu_lunch_report"
+            name="Lunch Report"
+            parent="menu_lunch_report_root"
+            action="action_lunch_report_wizard"
+            groups="base.group_system"
+        />
+
+    </data>
+</odoo>

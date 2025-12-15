@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- EMAIL SCHELER FORM VIEW -->
+        <record id="view_lunch_email_scheduler_form" model="ir.ui.view">
+            <field name="name">lunch.email.scheduler.form</field>
+            <field name="model">lunch.email.scheduler</field>
+            <field name="arch" type="xml">
+                <form string="Lunch Email Scheduler">
+                    <header>
+                        <button name="action_send_test_email" type="object"
+                            string="Send Test Email" class="btn-warning"
+                            help="Send a test email to yourself" />
+                        <button name="action_send_now" type="object"
+                            string="Send Now to All" class="btn-primary"
+                            confirm="This will send emails to all employees. Continue?"
+                            help="Manually trigger email sending to all employees" />
+                    </header>
+                    <sheet>
+                        <group>
+                            <group string="Email Configuration">
+                                <field name="name" readonly="1" />
+                                <field name="is_active" widget="boolean_toggle" />
+                                <field name="email_time" widget="float_time"
+                                    help="Time when emails should be sent (Nepal Time)" />
+                                <field name="email_template_id"
+                                    options="{'no_create': True}" />
+                            </group>
+                            <group string="Status">
+                                <field name="last_sent_date" readonly="1" />
+                            </group>
+                        </group>
+                        <group string="Instructions">
+                            <div class="alert alert-info" role="alert">
+                                <p>
+                                    <strong>How it works:</strong>
+                                </p>
+                                <ul>
+                                    <li>The system will automatically send lunch reminder emails to
+                                        all employees at the specified time</li>
+                                    <li>Emails are sent once per day in Nepal Time (Asia/Kathmandu
+                                        timezone)</li>
+                                    <li>Make sure the email template is configured properly</li>
+                                    <li>The cron job "Send Lunch Reminder Emails" must be active</li>
+                                </ul>
+                            </div>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- EMAIL SCHEDULER LIST VIEW -->
+        <record id="view_lunch_email_scheduler_list" model="ir.ui.view">
+            <field name="name">lunch.email.scheduler.list</field>
+            <field name="model">lunch.email.scheduler</field>
+            <field name="arch" type="xml">
+                <list string="Email Schedulers">
+                    <field name="name" />
+                    <field name="is_active" widget="boolean_toggle" />
+                    <field name="email_time" widget="float_time" />
+                    <field name="last_sent_date" />
+                </list>
+            </field>
+        </record>
+
+        <!-- EXCEL IMPORT WIZARD FORM -->
+        <record id="view_lunch_excel_import_form" model="ir.ui.view">
+            <field name="name">lunch.excel.import.form</field>
+            <field name="model">lunch.excel.import</field>
+            <field name="arch" type="xml">
+                <form string="Import Lunch Records from Excel">
+                    <field name="state" invisible="1" />
+                    <!-- Upload State -->
+                    <sheet invisible="state != 'draft'">
+                        <group>
+                            <group string="Upload Excel File">
+                                <field name="excel_file" filename="filename" widget="binary" />
+                                <field name="filename" invisible="1" />
+                            </group>
+                        </group>
+                        <group string="Instructions">
+                            <div class="alert alert-info" role="alert">
+                                <p>
+                                    <strong>Excel File Format:</strong>
+                                </p>
+                                <p>Your Excel file must contain the following columns:</p>
+                                <ul>
+                                    <li><strong>Employee Name</strong> - Full name of the employee
+                                        (must match exactly)</li>
+                                    <li><strong>Date</strong> - Date in YYYY-MM-DD format (e.g.,
+                                        2024-12-09)</li>
+                                    <li><strong>Lunch Type</strong> - Either "Veg" or "Non-Veg"</li>
+                                    <li><strong>State</strong> - Either "draft", "confirmed", or
+                                        "cancelled"</li>
+                                    <li><strong>Remarks</strong> - Optional remarks (can be empty)</li>
+                                </ul>
+                                <p><strong>Note:</strong> Saturday records will be automatically
+                                    skipped as they are holidays.</p>
+                            </div>
+                        </group>
+                    </sheet>
+                    <!-- Results State -->
+                    <sheet invisible="state != 'done'">
+                        <group>
+                            <field name="import_results" widget="text" readonly="1" nolabel="1" />
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button string="Download Template" type="object"
+                            name="action_download_template"
+                            class="btn-secondary" icon="fa-download" invisible="state != 'draft'" />
+                        <button string="Import" type="object" name="action_import_excel"
+                            class="btn-primary" icon="fa-upload" invisible="state != 'draft'" />
+                        <button string="Import More" type="object" name="action_back"
+                            class="btn-primary" invisible="state != 'done'" />
+                        <button string="Close" class="btn-secondary" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- ACTIONS -->
+        <record id="action_lunch_email_scheduler" model="ir.actions.act_window">
+            <field name="name">Email Scheduler</field>
+            <field name="res_model">lunch.email.scheduler</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_lunch_excel_import" model="ir.actions.act_window">
+            <field name="name">Import Lunch Records</field>
+            <field name="res_model">lunch.excel.import</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <!-- CRON JOB – ODOO 19 COMPATIBLE (removed numbercall & doall) -->
+        <record id="cron_send_lunch_reminder_emails" model="ir.cron">
+            <field name="name">Send Lunch Reminder Emails</field>
+            <field name="model_id" ref="model_lunch_email_scheduler" />
+            <field name="state">code</field>
+            <field name="code">model._send_lunch_reminder_emails()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <!-- MENU ITEMS -->
+        <menuitem id="menu_lunch_email_scheduler"
+            name="Email Scheduler"
+            parent="menu_configuration_lunch_records"
+            action="action_lunch_email_scheduler"
+            groups="base.group_system"
+            sequence="2" />
+
+        <menuitem id="menu_lunch_excel_import"
+            name="Import from Excel"
+            parent="menu_configuration_lunch_records"
+            action="action_lunch_excel_import"
+            groups="base.group_system"
+            sequence="3" />
+
+    </data>
+</odoo>

@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_lunch_record_user,access.lunch.record.user,model_lunch_record,base.group_user,1,1,1,0
+access_lunch_record_manager,access.lunch.record.manager,model_lunch_record,base.group_system,1,1,1,1
+access_lunch_types_user,access.lunch.types.user,model_lunch_types,base.group_user,1,0,0,0
+access_lunch_types_manager,access.lunch.types.manager,model_lunch_types,base.group_system,1,1,1,1
+access_lunch_report_wizard_employee,lunch.report.wizard.employee,model_lunch_report_wizard,base.group_user,1,0,1,0
+access_lunch_report_wizard_admin,lunch.report.wizard.admin,model_lunch_report_wizard,base.group_system,1,1,1,1
+access_lunch_timing,lunch.timing,model_lunch_timing,base.group_system,1,1,1,1
+access_lunch_timing_user,lunch_timing_user,model_lunch_timing,base.group_user,1,0,0,0
+access_lunch_email_scheduler_admin,lunch.email.scheduler.admin,model_lunch_email_scheduler,base.group_system,1,1,1,1
+access_lunch_excel_import_admin,lunch.excel.import.admin,model_lunch_excel_import,base.group_system,1,1,1,1
+access_lunch_admin_fill_wizard,lunch.admin.fill.wizard,model_lunch_admin_fill_wizard,base.group_system,1,1,1,1

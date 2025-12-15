@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ADMIN FILL WIZARD FORM VIEW -->
+    <record id="view_lunch_admin_fill_wizard_form" model="ir.ui.view">
+        <field name="name">lunch.admin.fill.wizard.form</field>
+        <field name="model">lunch.admin.fill.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Admin Fill Lunch Record">
+                <group>
+                    <field name="employee_id"
+                        options="{'no_create': True, 'no_open': True}" />
+                    <field name="date" />
+                    <field name="lunch_type"
+                        options="{'no_create': True, 'no_open': True}" />
+                    <field name="note" placeholder="Optional remarks..." />
+                </group>
+                <footer>
+                    <button string="Create Record"
+                        name="action_create_record"
+                        type="object"
+                        class="btn-primary" />
+                    <button string="Cancel"
+                        class="btn-secondary"
+                        special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Admin Fill Wizard Action - MUST BE BEFORE FORM VIEW THAT REFERENCES IT -->
+    <record id="action_lunch_admin_fill_wizard" model="ir.actions.act_window">
+        <field name="name">Admin Fill Lunch Record</field>
+        <field name="res_model">lunch.admin.fill.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- REPORT LIST VIEW -->
+    <record id="view_lunch_record_report_list" model="ir.ui.view">
+        <field name="name">lunch.record.report.list</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <list string="Lunch Report"
+                create="false" edit="false" delete="false"
+                decoration-success="state == 'confirmed'"
+                decoration-danger="state == 'cancelled'">
+                <field name="date" string="Date" />
+                <field name="day" string="Day" />
+                <field name="employee_id" string="Employee" />
+                <field name="lunch_type" widget="badge" decoration-info="1" />
+                <field name="cost" string="Cost" sum="Total Cost (All Records)" />
+                <field name="state" widget="badge"
+                    decoration-success="state == 'confirmed'"
+                    decoration-danger="state == 'cancelled'" />
+                <field name="is_admin_request" string="Admin Created" widget="boolean" />
+            </list>
+        </field>
+    </record>
+
+    <!-- TREE/LIST VIEW -->
+    <record id="view_lunch_record_list" model="ir.ui.view">
+        <field name="name">lunch.record.list</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <list string="Lunch Records"
+                create="true" edit="true" delete="false"
+                decoration-success="state == 'confirmed'"
+                decoration-danger="state == 'cancelled'"
+                decoration-warning="state == 'requested'"
+                decoration-muted="state == 'draft'">
+                <field name="date" widget="date" />
+                <field name="day" string="Day" />
+                <field name="employee_id" optional="show" />
+                <field name="lunch_type" optional="show" />
+                <field name="cost" optional="show" sum="Total Cost" />
+                <field name="state" widget="badge"
+                    decoration-success="state == 'confirmed'"
+                    decoration-danger="state == 'cancelled'"
+                    decoration-warning="state == 'requested'"
+                    decoration-muted="state == 'draft'" />
+                <field name="is_admin_request" optional="hide" widget="boolean" />
+            </list>
+        </field>
+    </record>
+
+    <!-- KANBAN VIEW -->
+    <record id="view_lunch_record_kanban" model="ir.ui.view">
+        <field name="name">lunch.record.kanban</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" default_group_by="date:day">
+                <field name="employee_id" />
+                <field name="date" />
+                <field name="day" />
+                <field name="lunch_type" />
+                <field name="cost" />
+                <field name="state" />
+                <field name="is_admin_request" />
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="employee_id" />
+                                    </strong>
+                                    <div class="o_kanban_record_subtitle text-muted">
+                                        <field name="date" /> (<field name="day" />) <t
+                                            t-if="record.is_admin_request.raw_value">
+                                            <span class="badge badge-info ms-1">Admin Created</span>
+                                        </t>
+                                    </div>
+                                </div>
+                                <span class="float-end">
+                                    <field name="state" widget="label_selection"
+                                        options="{'classes': {'draft': 'secondary', 'confirmed': 'success', 'cancelled': 'danger'}}" />
+                                </span>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <field name="lunch_type" widget="badge" decoration-info="1" />
+                                <div class="text-muted mt-2">
+                                    <i class="fa fa-money" /> Cost: <field name="cost"
+                                        widget="monetary" />
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- CALENDAR VIEW -->
+    <record id="view_lunch_record_calendar" model="ir.ui.view">
+        <field name="name">lunch.record.calendar</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <calendar string="Lunch Calendar" date_start="date" mode="month"
+                color="state" quick_create="0" event_open_popup="true">
+                <field name="employee_id" />
+                <field name="lunch_type" />
+                <field name="state" />
+            </calendar>
+        </field>
+    </record>
+
+    <!-- PIVOT VIEW -->
+    <record id="view_lunch_record_pivot" model="ir.ui.view">
+        <field name="name">lunch.record.pivot</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <pivot string="Lunch Analysis">
+                <field name="employee_id" type="row" />
+                <field name="date" type="col" interval="month" />
+                <field name="cost" type="measure" />
+            </pivot>
+        </field>
+    </record>
+
+    <!-- GRAPH VIEW -->
+    <record id="view_lunch_record_graph" model="ir.ui.view">
+        <field name="name">lunch.record.graph</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <graph string="Lunch Statistics" type="bar">
+                <field name="employee_id" />
+                <field name="cost" type="measure" />
+            </graph>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_lunch_record_form" model="ir.ui.view">
+        <field name="name">lunch.record.form</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <form string="Lunch Record">
+                <field name="name" invisible="1" />
+                <field name="is_admin_request" invisible="1" />
+                <field name="is_user_admin" invisible="1" />
+                <field name="is_employee_readonly" invisible="1" />
+                <header>
+                    <!-- Confirm Button: Smart visibility based on state and user role -->
+                    <button name="action_confirm" type="object" string="Confirm"
+                        class="btn-primary"
+                        invisible="state not in ('draft', 'requested') or (state == 'requested' and not is_user_admin)"
+                        help="Confirm lunch record" />
+
+                    <!-- Request Admin Fill Button: Only visible to non-admin employees in draft
+                    state -->
+                    <button name="action_request_admin_fill"
+                        type="object"
+                        string="Request Admin to Fill"
+                        class="btn-info"
+                        invisible="state != 'draft' or is_user_admin"
+                        help="Request admin to confirm this lunch record on your behalf" />
+
+                    <!-- Cancel Button: Visible in DRAFT state for both -->
+                    <button name="action_cancel" type="object" string="Cancel"
+                        class="btn-warning"
+                        invisible="state != 'draft'"
+                        confirm="Are you sure you want to cancel this lunch record?"
+                        help="Cancel this lunch record" />
+
+                    <!-- Admin Cancel Button: Visible in confirmed/requested state for admin -->
+                    <button name="action_cancel" type="object" string="Cancel"
+                        class="btn-warning"
+                        invisible="state not in ('confirmed', 'requested') or not is_user_admin"
+                        confirm="Are you sure you want to cancel this record?"
+                        help="Admin: Cancel record" />
+
+                    <!-- Reset to Draft (Admin Only) -->
+                    <button name="action_reset_draft" type="object" string="Reset to Draft"
+                        class="btn-secondary"
+                        invisible="state not in ('cancelled', 'confirmed', 'requested') or not is_user_admin"
+                        confirm="Reset this record to draft state?"
+                        help="Admin: Reset record to draft state" />
+
+                    <field name="state" widget="statusbar"
+                        statusbar_visible="draft,requested,confirmed,cancelled"
+                        readonly="1" />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box" groups="base.group_system">
+                        <!-- Admin Fill Record Button -->
+                        <button name="%(action_lunch_admin_fill_wizard)d"
+                            type="action"
+                            class="oe_stat_button"
+                            icon="fa-user-plus"
+                            string="Admin Fill Record"
+                            help="Create lunch record for any employee" />
+                    </div>
+
+                    <div class="alert alert-info" role="alert"
+                        invisible="not is_admin_request">
+                        <i class="fa fa-info-circle" /> This record was created by admin </div>
+
+                    <group>
+                        <field name="employee_id"
+                            readonly="1"
+                            options="{'no_create': True, 'no_open': False}" />
+                        <field name="date"
+                            readonly="not is_user_admin" />
+                        <field name="day" readonly="1" placeholder="Auto-filled" />
+                    </group>
+                    <group>
+                        <field name="lunch_type" readonly="1" />
+                        <field name="cost" readonly="1" />
+                    </group>
+                    <group>
+                        <field name="note" readonly="state != 'draft'" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_lunch_record_search" model="ir.ui.view">
+        <field name="name">lunch.record.search</field>
+        <field name="model">lunch.record</field>
+        <field name="arch" type="xml">
+            <search string="Lunch Records">
+                <field name="employee_id" string="Employee" />
+                <field name="date" string="Date" />
+                <field name="state" />
+                <filter string="Today" name="filter_today"
+                    domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]" />
+                <filter string="Tomorrow" name="filter_tomorrow"
+                    domain="[('date', '=', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]" />
+                <filter string="This Week" name="filter_this_week"
+                    domain="[('date', '>=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+                                 ('date', '&lt;=', (context_today() + datetime.timedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))]" />
+                <filter string="This Month" name="filter_this_month"
+                    domain="[('date', '>=', (context_today().replace(day=1)).strftime('%Y-%m-%d'))]" />
+                <separator />
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]" />
+                <filter string="Requested" name="filter_requested"
+                    domain="[('state', '=', 'requested')]" />
+                <filter string="Confirmed" name="filter_confirmed"
+                    domain="[('state', '=', 'confirmed')]"
+                    help="Show only confirmed records (use this filter to see accurate totals)" />
+                <filter string="Cancelled" name="filter_cancelled"
+                    domain="[('state', '=', 'cancelled')]" />
+                <filter string="Admin Created" name="filter_admin_created"
+                    domain="[('is_admin_request', '=', True)]" />
+                <separator />
+                <filter string="Group by Employee" name="group_employee"
+                    context="{'group_by': 'employee_id'}" />
+                <filter string="Group by Date" name="group_date" context="{'group_by': 'date'}" />
+                <filter string="Group by Status" name="group_state" context="{'group_by': 'state'}" />
+                <filter string="Group by Lunch Type" name="group_lunch_type"
+                    context="{'group_by': 'lunch_type'}" />
+            </search>
+        </field>
+    </record>
+
+    <!-- LUNCH TYPES VIEWS -->
+    <record id="view_lunch_types_list" model="ir.ui.view">
+        <field name="name">lunch.types.list</field>
+        <field name="model">lunch.types</field>
+        <field name="arch" type="xml">
+            <list string="Lunch Types">
+                <field name="lunch_type" />
+                <field name="cost" />
+                <field name="note" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lunch_types_form" model="ir.ui.view">
+        <field name="name">lunch.types.form</field>
+        <field name="model">lunch.types</field>
+        <field name="arch" type="xml">
+            <form string="Lunch Types">
+                <sheet>
+                    <group>
+                        <field name="lunch_type" />
+                        <field name="cost" />
+                        <field name="note" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- LUNCH Timing VIEWS -->
+    <record id="view_lunch_timing_list" model="ir.ui.view">
+        <field name="name">lunch.timing.list</field>
+        <field name="model">lunch.timing</field>
+        <field name="arch" type="xml">
+            <list string="Lunch Timings">
+                <field name="start_time" widget="float_time" />
+                <field name="end_time" widget="float_time" />
+                <field name="note" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lunch_timing_form" model="ir.ui.view">
+        <field name="name">lunch.timing.form</field>
+        <field name="model">lunch.timing</field>
+        <field name="arch" type="xml">
+            <form string="Lunch Timings">
+                <sheet>
+                    <group>
+                        <field name="start_time" widget="float_time" />
+                        <field name="end_time" widget="float_time" />
+                        <field name="note" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <!-- ACTIONS -->
+    <record id="action_lunch_record_all" model="ir.actions.act_window">
+        <field name="name">All Lunch Records</field>
+        <field name="res_model">lunch.record</field>
+        <field name="view_mode">list,kanban,calendar,graph,pivot,form</field>
+        <field name="search_view_id" ref="view_lunch_record_search" />
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_lunch_record_my" model="ir.actions.act_window">
+        <field name="name">My Lunch Records</field>
+        <field name="res_model">lunch.record</field>
+        <field name="view_mode">list,kanban,calendar,form</field>
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+        <field name="search_view_id" ref="view_lunch_record_search" />
+        <field name="context">{'search_default_filter_confirmed': 1}</field>
+    </record>
+
+    <record id="action_lunch_record_requested" model="ir.actions.act_window">
+        <field name="name">Requested Records</field>
+        <field name="res_model">lunch.record</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('state', '=', 'requested')]</field>
+        <field name="search_view_id" ref="view_lunch_record_search" />
+        <field name="context">{'search_default_filter_requested': 1}</field>
+    </record>
+
+    <record id="action_lunch_types" model="ir.actions.act_window">
+        <field name="name">Lunch Types</field>
+        <field name="res_model">lunch.types</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_lunch_timings" model="ir.actions.act_window">
+        <field name="name">Lunch Timings</field>
+        <field name="res_model">lunch.timing</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- SERVER ACTION -->
+    <record id="action_server_open_lunch_records_all" model="ir.actions.server">
+        <field name="name">Open All Lunch Records</field>
+        <field name="model_id" ref="model_lunch_record" />
+        <field name="state">code</field>
+        <field name="code">
+            action = env['lunch.record'].action_open_lunch_records_all()
+        </field>
+    </record>
+
+    <!-- MENU -->
+    <menuitem id="menu_lunch_root" name="Lunch Management" sequence="10"
+        web_icon="19_lunch_management,static/description/icon.png" />
+
+    <menuitem id="menu_lunch_records_root" name="Lunch Records" parent="menu_lunch_root"
+        sequence="1" />
+
+    <menuitem id="menu_lunch_my" name="My Lunch Records" parent="menu_lunch_records_root"
+        action="action_lunch_record_my" groups="base.group_user" sequence="1" />
+
+    <menuitem id="menu_lunch_requested" name="Requested Records" parent="menu_lunch_records_root"
+        action="action_lunch_record_requested" groups="base.group_system" sequence="2" />
+
+    <menuitem id="menu_lunch_all" name="All Lunch Records" parent="menu_lunch_records_root"
+        action="action_server_open_lunch_records_all" groups="base.group_system" sequence="3" />
+
+    <menuitem id="menu_lunch_admin_fill" name="Admin Fill Record" parent="menu_lunch_records_root"
+        action="action_lunch_admin_fill_wizard" groups="base.group_system" sequence="4" />
+
+    <menuitem id="menu_configuration_lunch_records" name="Configuration" parent="menu_lunch_root"
+        sequence="3" />
+
+    <menuitem id="menu_lunch_types" name="Lunch Types" parent="menu_configuration_lunch_records"
+        action="action_lunch_types" groups="base.group_system" sequence="1" />
+
+    <menuitem id="menu_lunch_timings" name="Lunch Timing Setting"
+        parent="menu_configuration_lunch_records"
+        action="action_lunch_timings" groups="base.group_system" sequence="2" />
+
+</odoo>
