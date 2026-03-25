@@ -11,7 +11,7 @@ A comprehensive employee lunch tracking module for Odoo 19 that helps organizati
 - **Automatic Employee Detection**: Auto-assigns logged-in employee to lunch records
 - **Duplicate Prevention**: One lunch record per employee per day
 - **Cost Tracking**: Automatic cost calculation from lunch types
-- **Smart Day Detection**: Automatically selects Veg/Non-Veg based on weekday (Monday & Friday = Non-Veg)
+- **Smart Day Detection**: Automatically selects Veg/Non-Veg based on weekdays
 - **Holiday Management**: Automatically blocks Saturday entries
 - **Dual Date System**: Separate lunch date and confirmation timestamp
 
@@ -53,7 +53,7 @@ A comprehensive employee lunch tracking module for Odoo 19 that helps organizati
   - Access email scheduler and import tools
 
 ### 🆕 Email Reminder System
-- **Automated Daily Reminders**: Send lunch reminder emails to all employees at configured time (default: 2:00 PM)
+- **Automated Daily Reminders**: Send lunch reminder emails to all employees at configured time
 - **Beautiful HTML Templates**: Professional, responsive email design with call-to-action buttons
 - **Timezone Support**: Nepal Time (Asia/Kathmandu) with configurable send times
 - **Test Email Function**: Send test emails before enabling for all employees
@@ -164,7 +164,7 @@ pip install pandas openpyxl pytz
      - Set start time: 9:00 AM
      - Set end time: 11:00 AM
    - Navigate to **Lunch Management → Configuration → Email Scheduler**
-     - Configure email send time (default: 2:00 PM)
+     - Configure email send time
      - Test email functionality
 
 6. Assign Lunch Manager role (optional):
